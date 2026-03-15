@@ -2356,8 +2356,8 @@ function addComment(pid){
 // ══════════════════════════════════════
 function renderUsers(query=''){
   const g=document.getElementById('ugrid');
-  let others=users.filter(u=>!currentUser||u.id!==currentUser.id);
-  if(query)others=others.filter(u=>u.name.toLowerCase().includes(query.toLowerCase())||( u.bio||'').toLowerCase().includes(query.toLowerCase()));
+  let others=users.filter(u=>(!currentUser||u.id!==currentUser.id)&&!u.isAdmin);
+  if(query)others=others.filter(u=>u.name.toLowerCase().includes(query.toLowerCase())||(u.bio||'').toLowerCase().includes(query.toLowerCase()));
   if(others.length===0){g.innerHTML='<div class="empty"><div class="eico">👥</div><p>ユーザーが見つかりません</p></div>';return;}
   g.innerHTML=others.map((u,i)=>{
     const c=acClrs[i%acClrs.length],isF=currentUser&&currentUser.following.includes(u.id);
@@ -3162,7 +3162,7 @@ function toggleLang(){
 // ══════════════════════════════════════
 function renderAdminStats(){
   const el=document.getElementById('admin-stats');if(!el)return;
-  const totalPT=users.reduce((a,u)=>a+u.pt,0);
+  const totalPT=users.filter(u=>!u.isAdmin).reduce((a,u)=>a+u.pt,0);
   const totalTx=Object.values(txHistory).flat().length;
   el.innerHTML=`<div class="stat-cards">
     <div class="stat-card"><div class="sv" style="color:var(--accent)">${users.length}</div><div class="sl2">👥 ユーザー数</div></div>
