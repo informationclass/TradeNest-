@@ -1453,24 +1453,6 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 </div>
 
 <!-- ═══ PIN SETUP MODAL ═══ -->
-<div class="overlay" id="pin-modal">
-  <div class="modal" style="max-width:320px;text-align:center">
-    <div class="modalhd"><h3 id="pin-modal-title">🔑 PINを設定</h3><button class="mclose" onclick="closeModal('pin-modal')">✕</button></div>
-    <div id="pin-modal-desc" style="font-size:13px;color:var(--text2);margin-bottom:4px">4桁のPINコードを設定します</div>
-    <div class="pin-dots" id="pin-dots">
-      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
-    </div>
-    <div class="pin-pad">
-      <button class="pin-key" onclick="pinInput('1')">1</button><button class="pin-key" onclick="pinInput('2')">2</button><button class="pin-key" onclick="pinInput('3')">3</button>
-      <button class="pin-key" onclick="pinInput('4')">4</button><button class="pin-key" onclick="pinInput('5')">5</button><button class="pin-key" onclick="pinInput('6')">6</button>
-      <button class="pin-key" onclick="pinInput('7')">7</button><button class="pin-key" onclick="pinInput('8')">8</button><button class="pin-key" onclick="pinInput('9')">9</button>
-      <div></div><button class="pin-key" onclick="pinInput('0')">0</button><button class="pin-key del" onclick="pinBack()">⌫</button>
-    </div>
-    <div id="pin-modal-err" style="color:var(--danger);font-size:12px;margin-top:10px;min-height:18px"></div>
-  </div>
-</div>
-
 <!-- ═══ LOGIN HISTORY MODAL ═══ -->
 <div class="overlay" id="loginhist-modal">
   <div class="modal" style="max-width:400px">
@@ -2743,11 +2725,10 @@ function renderIssuedCoupons(){
 }
 function renderReports(){
   const list=document.getElementById('rep-list'),badge=document.getElementById('rep-badge'),cnt=document.getElementById('rep-count');
-  const newR=reports.filter(r=>!r.resolved);
-  if(badge){badge.textContent=newR.length;badge.style.display=newR.length>0?'inline-block':'none';}
-  if(cnt)cnt.textContent=`計${reports.length}件 / 未処理${newR.length}件`;
+  if(badge){badge.textContent=reports.length;badge.style.display=reports.length>0?'inline-block':'none';}
+  if(cnt)cnt.textContent=`未処理 ${reports.length}件`;
   if(reports.length===0){list.innerHTML='<div class="empty"><div class="eico">✅</div><p>通報はありません</p></div>';return;}
-  list.innerHTML=reports.map((r,i)=>`<div class="ritem ${r.resolved?'':'newrep'}"><div class="rtype">${r.resolved?'✅ 処理済み':'🚨 新規通報'}</div><div class="rtxt"><b>種別:</b> ${esc(r.reason)} ／ <b>対象:</b> ${esc(r.targetName)}</div><div class="rmeta">通報者: @${esc(r.reporterName)} ／ ${r.time}${r.detail?`<br>詳細: ${esc(r.detail)}`:''}</div>${!r.resolved?`<div class="rbtns"><button class="rbtn res" onclick="resolveRep(${i},'accept')">受理・対処する</button><button class="rbtn dis" onclick="resolveRep(${i},'dismiss')">却下</button></div>`:`<div style="font-size:11px;color:var(--text2);margin-top:5px">処理: ${r.resolution}</div>`}</div>`).join('');
+  list.innerHTML=reports.map((r,i)=>`<div class="ritem newrep"><div class="rtype">🚨 通報</div><div class="rtxt"><b>種別:</b> ${esc(r.reason)} ／ <b>対象:</b> ${esc(r.targetName)}</div><div class="rmeta">通報者: @${esc(r.reporterName)} ／ ${r.time}${r.detail?`<br>詳細: ${esc(r.detail)}`:''}</div><div class="rbtns"><button class="rbtn res" onclick="resolveRep(${i},'accept')">受理・対処する</button><button class="rbtn dis" onclick="resolveRep(${i},'dismiss')">却下</button></div></div>`).join('');
 }
 function showBanScreen(){
   document.getElementById('auth').innerHTML=`
@@ -3297,7 +3278,7 @@ function renderContactHistory(){
 function renderContactAdmin(){
   const el=document.getElementById('ct-admin-list');if(!el)return;
   const cnt=document.getElementById('ct-admin-count');
-  if(cnt)cnt.textContent=`計${contactList.length}件 / 未返信${contactList.filter(c=>c.status==='pending').length}件`;
+  if(cnt)cnt.textContent=`未返信 ${contactList.length}件`;
   if(contactList.length===0){el.innerHTML='<div class="empty"><div class="eico">📮</div><p>お問い合わせはありません</p></div>';return;}
   el.innerHTML=contactList.map((c,i)=>`<div class="ritem ${c.status==='pending'?'newrep':''}" style="margin-bottom:8px">
     <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
