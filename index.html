@@ -2683,13 +2683,16 @@ function approveForgot(i){
     toast(`新規アカウント @${r.newu} を作成しました✅`,'success');
   }
   r.status='approved';
+  forgotRequests.splice(i,1);
   try{localStorage.setItem('tn_forgot',JSON.stringify(forgotRequests));}catch(e){}
   saveData();renderForgotRequests();renderAdminUsers('');
 }
 function rejectForgot(i){
-  forgotRequests[i].status='rejected';
+  const pending=forgotRequests.filter(n=>n.status==='pending');
+  const idx=forgotRequests.indexOf(pending[i]);
+  if(idx!==-1)forgotRequests.splice(idx,1);
   try{localStorage.setItem('tn_forgot',JSON.stringify(forgotRequests));}catch(e){}
-  toast('申請を却下しました','info');renderForgotRequests();
+  toast('申請を却下しました','info');saveData();renderForgotRequests();
 }
 
 function renderAdminProducts(){
@@ -2820,9 +2823,9 @@ function checkAbnormalPT(uid,delta){
   saveData();
 }
 function resolveRep(i,action){
-  reports[i].resolved=true; reports[i].resolution=action==='accept'?'受理・対処済み':'却下';
+  reports.splice(i,1);
   toast(action==='accept'?'通報を受理しました':'通報を却下しました',action==='accept'?'warn':'info');
-  renderReports();
+  saveData();renderReports();
 }
 function sendBroadcastDM(){
   const msg=document.getElementById('broadcast-msg').value.trim();
@@ -3314,12 +3317,11 @@ function replyContact(i){
   const inp=document.getElementById(`ct-reply-${i}`);
   const reply=inp?.value.trim();
   if(!reply){toast('返信内容を入力してください','error');return;}
-  contactList[i].status='replied';contactList[i].reply=reply;
-  try{localStorage.setItem('tn_contacts',JSON.stringify(contactList));}catch(e){}
-  // ユーザーに通知
   const uid=contactList[i].userId;
   if(uid&&uid!=='guest')addNotif(uid,`📮 お問い合わせに管理者から返信が届きました`);
-  toast('返信しました✅','success');renderContactAdmin();renderContactHistory();
+  contactList.splice(i,1);
+  try{localStorage.setItem('tn_contacts',JSON.stringify(contactList));}catch(e){}
+  toast('返信しました✅','success');saveData();renderContactAdmin();renderContactHistory();
 }
 function renderShop(){
   const g=document.getElementById('shop-grid');if(!g||!currentUser)return;
