@@ -1946,7 +1946,7 @@ function openDetail(pid){
     sub+=`<div style="margin-top:10px;background:var(--surface2);border:1.5px solid var(--accent);border-radius:10px;padding:12px;text-align:left;font-size:13px;line-height:1.7;word-break:break-all"><div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:5px">📩 購入者限定メッセージ</div>${esc(p.afterMsg).replace(/https?:\/\/[^\s]+/g,url=>`<a href="${url}" target="_blank" style="color:var(--accent);text-decoration:underline">${url}</a>`)}</div>`;
   if(!isMine&&!owned&&!p.sold&&stockOk)
     sub+=`<br><button onclick="closeModal('conf-modal');openNegotiate(${pid})" style="margin-top:6px;padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:7px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🏷️ 値下げ交渉</button>`;
-  sub+=`<br><button onclick="closeModal('conf-modal');openReport('product',${pid},${JSON.stringify(p.name)})" style="margin-top:6px;padding:5px 12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🚨 通報</button>`;
+  sub+=`<br><button onclick="closeModal('conf-modal');openReport('product',${pid},'${esc(p.name).replace(/'/g,"&#39;")}')" style="margin-top:6px;padding:5px 12px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:7px;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🚨 通報</button>`;
   // 出品者なら編集ボタン
   if(isMine&&!p.sold)
     sub+=`<br><button onclick="closeModal('conf-modal');openEditProduct(${pid})" style="margin-top:6px;padding:5px 12px;background:rgba(67,217,173,.1);border:1px solid rgba(67,217,173,.2);border-radius:7px;color:var(--accent3);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✏️ 編集する</button>`;
@@ -2319,7 +2319,7 @@ function renderUsers(query=''){
         <button onclick="openDMWith('${u.id}')" style="padding:7px 10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:50px;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">✉️</button>
         <button onclick="toggleBlock('${u.id}')" style="padding:7px 10px;background:${isBlocked?'rgba(239,68,68,.15)':'var(--surface2)'};border:1.5px solid ${isBlocked?'rgba(239,68,68,.3)':'var(--border)'};border-radius:50px;color:${isBlocked?'var(--danger)':'var(--text2)'};font-size:11px;font-weight:700;cursor:pointer;font-family:inherit" title="${isBlocked?'ブロック解除':'ブロック'}">${isBlocked?'🔓':'🔒'}</button>
       </div>
-      <button onclick="openReport('user','${u.id}',${JSON.stringify(u.name)})" style="margin-top:6px;width:100%;padding:5px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.14);border-radius:7px;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🚨 通報</button>
+      <button onclick="openReport('user','${u.id}','${esc(u.name).replace(/'/g,'\\&#39;')}')" style="margin-top:6px;width:100%;padding:5px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.14);border-radius:7px;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🚨 通報</button>
     </div>`;
   }).join('');
 }
@@ -2595,7 +2595,7 @@ function renderAdmin(){
     g.parentNode.insertBefore(wrap,g);
   }
   renderAdminUsers('');
-  renderReports(); renderIssuedCoupons(); renderAdminProducts(); renderForgotRequests(); renderBanList(); renderContactAdmin();
+  renderReports(); renderIssuedCoupons(); renderAdminProducts(); renderForgotRequests(); renderContactAdmin();
 }
 function renderAdminUsers(query=''){
   const g=document.getElementById('admin-users');if(!g)return;
@@ -2758,26 +2758,8 @@ function delUser(uid){
   products=products.filter(p=>p.sellerId!==uid);
   saveData();renderAdmin();renderUsers();renderProds('hgrid',products);renderProds('mgrid',products);
 }
-function unbanUser(name){
-  bannedList=bannedList.filter(b=>b.name!==name);
-  try{localStorage.setItem('tn_banned',JSON.stringify(bannedList));}catch(e){}
-  toast(`${name}のBANを解除しました✅`,'success');renderBanList();
-}
-function renderBanList(){
-  let el=document.getElementById('admin-ban-section');
-  if(!el){
-    el=document.createElement('div');el.id='admin-ban-section';
-    const forgotEl=document.getElementById('admin-forgot-section');
-    if(forgotEl&&forgotEl.parentNode)forgotEl.parentNode.insertBefore(el,forgotEl);
-  }
-  if(!el.parentNode)return;
-  el.innerHTML=`<div class="sechd" style="margin-top:18px"><h3>🚫 BANリスト</h3><span style="font-size:12px;color:var(--text2)">${bannedList.length}件</span></div>`+
-  (bannedList.length===0?'<div style="font-size:12px;color:var(--text2);padding:8px 0">BANユーザーはいません</div>':
-  bannedList.map(b=>`<div class="ritem" style="margin-bottom:8px;display:flex;align-items:center;gap:12px">
-    <div style="flex:1"><div style="font-weight:700;font-size:13px">🚫 @${esc(b.name)}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${esc(b.reason)} ／ ${b.time}</div></div>
-    <button onclick="unbanUser('${esc(b.name)}')" style="padding:5px 11px;background:rgba(67,217,173,.15);border:1px solid rgba(67,217,173,.3);border-radius:7px;color:var(--accent3);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">BAN解除</button>
-  </div>`).join(''));
-}
+function renderBanList(){}
+function unbanUser(name){}
 function openPT(uid){
   ptTargetId=uid; const u=users.find(x=>x.id===uid);if(!u)return;
   document.getElementById('pt-tname').textContent=u.name; document.getElementById('pt-tcur').textContent=u.pt+' PT'; document.getElementById('pt-amt').value='';
@@ -3552,16 +3534,11 @@ function pinInput(n){
 function pinBack(){if(pinBuffer.length>0){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();}}
 function togglePINSetting(){
   if(!currentUser.pinEnabled){
-    pinMode='set1'; pinBuffer=''; pinConfirmFirst='';
-    document.getElementById('pin-modal-title').textContent='🔑 PINを設定';
-    document.getElementById('pin-modal-desc').textContent='4桁のPINコードを設定します';
-    document.getElementById('pin-modal-err').textContent='';
-    updatePinDots();
-    document.getElementById('pin-modal').classList.add('on');
+    openPinSetup();
   }else{
     currentUser.pin=null; currentUser.pinEnabled=false;
-    document.getElementById('pin-toggle').classList.remove('on');
-    document.getElementById('pin-status-txt').textContent='未設定';
+    ['pin-toggle','pin-toggle2'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});
+    ['pin-status-txt','pin-status-txt2'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='未設定';});
     saveData(); toast('PINを無効化しました','info');
   }
 }
