@@ -23,7 +23,7 @@
 <meta name="twitter:image" content="ogp.png">
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
@@ -690,6 +690,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
       <div class="nitem" onclick="showPage('mypage')"><span class="nico">👤</span>マイページ</div>
       <div class="nitem" onclick="showPage('contact')"><span class="nico">📮</span>お問い合わせ</div>
       <div class="nitem" onclick="showPage('settings')"><span class="nico">⚙️</span>設定</div>
+      <div class="nitem" onclick="showPage('contact')"><span class="nico">📮</span>お問い合わせ</div>
       <div class="nitem" id="admin-nav" style="display:none" onclick="showPage('admin')"><span class="nico">🛡️</span>管理者<span class="nbadge adm" id="rep-badge" style="display:none">0</span></div>
     </div>
     <div class="sfooter">
@@ -1000,6 +1001,65 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
       <div class="settings-section">
         <h4>📋 送信履歴</h4>
         <div id="ct-history"></div>
+      </div>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="page" id="page-contact">
+      <div class="pthero" style="margin-bottom:18px">
+        <div><div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;opacity:.8;margin-bottom:4px">📮 お問い合わせ</div><div style="font-size:13px;opacity:.8">ご意見・ご要望をお送りください</div></div>
+        <div style="font-size:44px;opacity:.2">📮</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 4px var(--shadow)">
+        <!-- 種類 -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">お問い合わせの種類</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="contact-types">
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s" onclick="selectContactType(this)">
+              <input type="radio" name="contact-type" value="feature" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <div><div style="font-weight:700;font-size:13px">✨ 追加してほしい機能</div><div style="font-size:11px;color:var(--text2);margin-top:2px">新機能・改善のリクエスト</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s" onclick="selectContactType(this)">
+              <input type="radio" name="contact-type" value="bug" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <div><div style="font-weight:700;font-size:13px">🐛 バグ・不具合の報告</div><div style="font-size:11px;color:var(--text2);margin-top:2px">動作がおかしい・エラーが出る</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s" onclick="selectContactType(this)">
+              <input type="radio" name="contact-type" value="report" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <div><div style="font-weight:700;font-size:13px">🚨 ユーザー・商品の通報</div><div style="font-size:11px;color:var(--text2);margin-top:2px">迷惑行為・不適切なコンテンツ</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s" onclick="selectContactType(this)">
+              <input type="radio" name="contact-type" value="question" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <div><div style="font-weight:700;font-size:13px">❓ 使い方・質問</div><div style="font-size:11px;color:var(--text2);margin-top:2px">操作方法がわからない</div></div>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;cursor:pointer;transition:all .18s" onclick="selectContactType(this)">
+              <input type="radio" name="contact-type" value="other" style="accent-color:var(--accent);width:16px;height:16px;flex-shrink:0">
+              <div><div style="font-weight:700;font-size:13px">📝 その他</div><div style="font-size:11px;color:var(--text2);margin-top:2px">上記以外のお問い合わせ</div></div>
+            </label>
+          </div>
+        </div>
+        <!-- ペンネーム -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px">ペンネーム（任意）</label>
+          <input type="text" id="contact-penname" placeholder="例：匿名希望 / カイ" style="width:100%;background:var(--inp);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">空欄の場合はユーザー名が使われます</div>
+        </div>
+        <!-- 理由・内容 -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px">内容・理由 <span style="color:var(--danger)">*</span></label>
+          <textarea id="contact-body" placeholder="詳しく教えてください。&#10;例：〇〇という機能を追加してほしいです。理由は〜" style="width:100%;background:var(--inp);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .18s;resize:vertical;min-height:110px" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+        <!-- 送信 -->
+        <button class="btnP" onclick="submitContact()">📨 送信する</button>
+        <!-- 送信済み一覧 -->
+        <div id="contact-sent-wrap" style="margin-top:18px;display:none">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 自分の送信履歴</div>
+          <div id="contact-sent-list" style="display:flex;flex-direction:column;gap:7px"></div>
+        </div>
+      </div>
+      <!-- 管理者：受信一覧 -->
+      <div id="admin-contact-panel" style="display:none;margin-top:22px">
+        <div class="sechd"><h3 style="color:var(--danger)">🛡️ お問い合わせ受信一覧</h3><span id="contact-admin-count" style="font-size:12px;color:var(--text2)"></span></div>
+        <div id="admin-contact-list"></div>
       </div>
     </div>
 
@@ -1524,7 +1584,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 // STATE
 // ══════════════════════════════════════
 let isDark=false, currentUser=null, pendingBuyId=null, repTarget=null, repReason='', ptTargetId=null, genPW='', currentDM=null, currentRevProdId=null, currentStars=0, gachaLock=false, currentRankTab='prod', currentHistTab='all', currentLang='ja', selectedEmoji='😊', negTargetId=null, bidTargetId=null, currentBoardTab='all', editProdId=null;
-let ngWords=[], pinBuffer='', pinMode='', pinStep=0, pinFirst='', pinConfirmFirst='', spamTimestamps={}, forgotRequests=[], bannedList=[];
+let ngWords=[], pinBuffer='', pinMode='', pinStep=0, pinFirst='', pinConfirmFirst='', spamTimestamps={}, forgotRequests=[], bannedList=[], contacts=[];
 
 // ══════════════════════════════════════
 // SUPABASE + ローカル永続化
@@ -1540,14 +1600,14 @@ const ADMIN_DEFAULT={id:'admin',name:'20140110',pass:'kai_0110',pt:9999,bio:'サ
 
 function saveLocal(){
   try{
-    const data={users,products,posts,reports,notifs,dms,dmUnread,coupons,txHistory,negotiations,events,bannedList,forgotRequests,nextId,nextPostId};
+    const data={users,products,posts,reports,notifs,dms,dmUnread,coupons,txHistory,negotiations,events,bannedList,forgotRequests,contacts,nextId,nextPostId};
     localStorage.setItem('tn_data',JSON.stringify(data));
   }catch(e){console.warn('saveLocal error',e);}
 }
 async function saveRemote(){
   const sb=getSB();if(!sb)return;
   try{
-    const data={users,products,posts,reports,notifs,dms,dmUnread,coupons,txHistory,negotiations,events,bannedList,forgotRequests,nextId,nextPostId};
+    const data={users,products,posts,reports,notifs,dms,dmUnread,coupons,txHistory,negotiations,events,bannedList,forgotRequests,contacts,nextId,nextPostId};
     await sb.from('tradenest_data').upsert({id:1,payload:data,updated_at:new Date().toISOString()});
   }catch(e){console.warn('saveRemote error',e);}
 }
@@ -1596,7 +1656,7 @@ function applyData(d){
   notifs=d.notifs||{};dms=d.dms||{};dmUnread=d.dmUnread||{};
   coupons=d.coupons||[];txHistory=d.txHistory||{};
   negotiations=d.negotiations||[];events=d.events||[];
-  bannedList=d.bannedList||[];forgotRequests=d.forgotRequests||[];
+  bannedList=d.bannedList||[];forgotRequests=d.forgotRequests||[];contacts=d.contacts||[];
   nextId=d.nextId||1;nextPostId=d.nextPostId||1;
 }
 function setupRealtimeSync(){
@@ -1798,6 +1858,7 @@ function loginOK(user){
   if(!user.shopOwned)user.shopOwned=[];
   if(!user.titles)user.titles=[];
   if(!user.boostActive)user.boostActive=false;
+  if(!user.boost3Active)user.boost3Active=false;
   // ログイン履歴記録
   if(!user.loginHistory)user.loginHistory=[];
   user.loginHistory.unshift({time:new Date().toLocaleString('ja'),ua:navigator.userAgent.slice(0,80)});
@@ -2885,6 +2946,7 @@ function showPage(name){
   if(name==='shop')renderShop();
   if(name==='events'){renderEvents();if(currentUser?.isAdmin)document.getElementById('admin-event-panel').style.display='block';}
   if(name==='settings')renderSettings();
+  if(name==='contact')renderContact();
 }
 
 // ══════════════════════════════════════
@@ -3307,29 +3369,36 @@ function replyContact(i){
 function renderShop(){
   const g=document.getElementById('shop-grid');if(!g||!currentUser)return;
   g.innerHTML=shopItems.map(item=>{
-    const owned=(currentUser.shopOwned||[]).includes(item.id);
+    const isConsumable=item.type==='boost'||item.type==='boost3';
+    const owned=!isConsumable&&(currentUser.shopOwned||[]).includes(item.id);
+    const activeBoost=(item.type==='boost'&&currentUser.boostActive)||(item.type==='boost3'&&currentUser.boost3Active);
     return`<div class="shop-item ${owned?'owned':''}" onclick="buyShopItem('${item.id}')">
       <div class="shop-ico">${item.icon}</div>
       <div class="shop-name">${item.name}</div>
       <div class="shop-desc">${item.desc}</div>
-      ${owned?'<div style="color:var(--accent3);font-size:12px;font-weight:700">✅ 所持済み</div>':`<div class="shop-price">🪙 ${item.price}PT</div>`}
+      ${owned?'<div style="color:var(--accent3);font-size:12px;font-weight:700">✅ 所持済み</div>':
+        activeBoost?`<div style="color:var(--warn);font-size:12px;font-weight:700">⚡ 発動待機中</div>`:
+        `<div class="shop-price">🪙 ${item.price}PT</div>`}
+      ${isConsumable&&!owned?'<div style="font-size:10px;color:var(--text2);margin-top:3px">何度でも購入可</div>':''}
     </div>`;
   }).join('');
 }
 function buyShopItem(id){
   const item=shopItems.find(x=>x.id===id);if(!item||!currentUser)return;
-  if((currentUser.shopOwned||[]).includes(id)){toast('すでに所持しています','info');return;}
+  // ブースト系は使い捨てなので所持チェックしない
+  const isConsumable=item.type==='boost'||item.type==='boost3';
+  if(!isConsumable&&(currentUser.shopOwned||[]).includes(id)){toast('すでに所持しています','info');return;}
   if(currentUser.pt<item.price){toast(`PT残高が不足しています（必要: ${item.price}PT）`,'error');return;}
   currentUser.pt-=item.price;
   if(!currentUser.shopOwned)currentUser.shopOwned=[];
-  currentUser.shopOwned.push(id);
+  if(!isConsumable)currentUser.shopOwned.push(id); // 消耗品はshopOwnedに追加しない
   // apply effect
   if(item.type==='emoji'){if(!emojiList.includes(item.icon))emojiList.push(item.icon);}
   if(item.type==='title')currentUser.titles=[item.name];
-  if(item.type==='boost'){currentUser.boostActive=true;toast(`🎫 次のガチャのPTが2倍になります！`,'success');}
-  if(item.type==='boost3'){currentUser.boost3Active=true;toast(`🎟️ 次のガチャのPTが3倍になります！！`,'success');}
-  updatePT();renderShop();renderMyPage();
-  toast(`「${item.name}」を購入しました！`,'success');
+  if(item.type==='boost'){currentUser.boostActive=true;}
+  if(item.type==='boost3'){currentUser.boost3Active=true;}
+  updatePT();renderShop();renderMyPage();saveData();
+  toast(`「${item.name}」を購入しました！${isConsumable?'次のガチャで効果が発動します🎰':''}` ,'success');
   addTx(currentUser.id,{type:'buy',name:`ショップ: ${item.name}`,pt:-item.price,time:new Date().toLocaleString('ja'),cat:'shop'});
 }
 
