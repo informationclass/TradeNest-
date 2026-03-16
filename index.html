@@ -1527,15 +1527,15 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 // ══════════════════════════════════════
 // STATE
 // ══════════════════════════════════════
-let isDark=false, currentUser=null, pendingBuyId=null, repTarget=null, repReason='', ptTargetId=null, genPW='', currentDM=null, currentRevProdId=null, currentStars=0, gachaLock=false, currentRankTab='prod', currentHistTab='all', currentLang='ja', selectedEmoji='😊', negTargetId=null, bidTargetId=null, currentBoardTab='all', editProdId=null;
-let ngWords=[], pinBuffer='', pinMode='', pinStep=0, pinFirst='', pinConfirmFirst='', spamTimestamps={}, forgotRequests=[], bannedList=[], contacts=[];
+var isDark=isDark||false, currentUser=currentUser||null, pendingBuyId=pendingBuyId||null, repTarget=repTarget||null, repReason=repReason||'', ptTargetId=ptTargetId||null, genPW=genPW||'', currentDM=currentDM||null, currentRevProdId=currentRevProdId||null, currentStars=currentStars||0, gachaLock=gachaLock||false, currentRankTab=currentRankTab||'prod', currentHistTab=currentHistTab||'all', currentLang=currentLang||'ja', selectedEmoji=selectedEmoji||'😊', negTargetId=negTargetId||null, bidTargetId=bidTargetId||null, currentBoardTab=currentBoardTab||'all', editProdId=editProdId||null;
+var ngWords=ngWords||[], pinBuffer=pinBuffer||'', pinMode=pinMode||'', pinStep=pinStep||0, pinFirst=pinFirst||'', pinConfirmFirst=pinConfirmFirst||'', spamTimestamps=spamTimestamps||{}, forgotRequests=forgotRequests||[], bannedList=bannedList||[], contacts=contacts||[];
 
 // ══════════════════════════════════════
 // SUPABASE + ローカル永続化
 // ══════════════════════════════════════
 const SUPABASE_URL='https://jreclfeabtzttlqbwtbx.supabase.co';
 const SUPABASE_KEY='sb_publishable_JIm4aVDieQVH2wFLRzB-tA_qMYx4yC9';
-let _sb=null;
+var _sb=_sb||null;
 function getSB(){
   if(!_sb&&window.supabase){try{_sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);}catch(e){}}
   return _sb;
@@ -1775,7 +1775,7 @@ function doLogin(){
   }
   loginOK(user);
 }
-let pendingLoginUser=null;
+var pendingLoginUser=pendingLoginUser||null;
 function doReg(){
   const u=document.getElementById('ru').value.trim(),p=document.getElementById('rp').value,p2=document.getElementById('rp2').value;
   if(!u||u.length<6||u.length>14){showErr('ユーザー名は6〜14文字');return;}
@@ -2081,7 +2081,7 @@ function deleteMyProduct(pid){
 // ══════════════════════════════════════
 // IMAGE
 // ══════════════════════════════════════
-let imgData=null;
+var imgData=imgData||null;
 function compressImage(file,maxWidth,quality,callback){
   const r=new FileReader();
   r.onload=e=>{
@@ -3033,7 +3033,7 @@ function tickAuctions(){
 // PROFILE EDIT
 // ══════════════════════════════════════
 const emojiList=['😊','😎','🤩','😺','🦊','🐧','🦁','🐸','🐼','🦄','🦋','🌸','⚡','🔥','💎','🎮','📚','🎨','🚀','🌙','☀️','🎵','🏆','👑','🛡️','🎭','🎪','🌈','💜','❤️','💚','🧡'];
-let profileImgData=null;
+var profileImgData=profileImgData||null;
 function openProfileEdit(){
   profileImgData=currentUser.avatarImg||null;
   document.getElementById('prof-bio').value=currentUser.bio||'';
@@ -3241,7 +3241,7 @@ function updateHomeMissionWidget(){
 // ══════════════════════════════════════
 // CONTACT / お問い合わせ
 // ══════════════════════════════════════
-let contactList=[];
+var contactList=contactList||[];
 try{const cl=localStorage.getItem('tn_contacts');if(cl)contactList=JSON.parse(cl);}catch(e){}
 
 const ctTypeLabel={feature:'✨ 機能追加・改善要望',bug:'🐛 バグ・不具合報告',question:'❓ 使い方・質問',other:'💬 その他'};
@@ -3580,7 +3580,7 @@ function submitDeleteAccount(){
 // SETTINGS
 // ══════════════════════════════════════
 const defaultSettings={notifEnabled:true,soundEnabled:true,dmNotifEnabled:true,likeNotifEnabled:true,listNotifEnabled:true,volume:70,hideOnline:false,dmRestrict:false,pubAnalytics:true,ptWatchEnabled:true,accentColor:'#6c63ff',fontSize:100,ngWords:[]};
-let appSettings={...defaultSettings};
+var appSettings=appSettings||{...defaultSettings};
 // localStorageから設定読み込み
 try{const s=localStorage.getItem('tn_settings');if(s)appSettings={...defaultSettings,...JSON.parse(s)};}catch(e){}
 function saveSettings(){try{localStorage.setItem('tn_settings',JSON.stringify(appSettings));}catch(e){}}
