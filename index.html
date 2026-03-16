@@ -2705,6 +2705,7 @@ function adminDeleteProduct(pid){
   if(!confirm('この商品を削除しますか？'))return;
   const p=products.find(x=>x.id===pid);if(!p)return;
   products=products.filter(x=>x.id!==pid);
+  saveData();
   toast(`「${p.name}」を削除しました`,'warn');
   renderAdmin();renderProds('hgrid',products);renderProds('mgrid',products);
 }
