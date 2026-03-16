@@ -686,7 +686,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 <!-- ═══════════════ APP ═══════════════ -->
 <div id="app">
   <aside class="sidebar">
-    <div class="sl"><div class="slm"><img src="favicon.png" style="width:22px;height:22px;object-fit:contain;border-radius:4px"></div><span>TradeNest</span></div>
+    <div class="sl"><div class="slm" style="background:none;box-shadow:none"><img src="favicon.png" style="width:34px;height:34px;object-fit:contain;border-radius:4px"></div><span>TradeNest</span></div>
     <div class="sbscroll">
       <div class="nsec">メイン</div>
       <div class="nitem active" onclick="showPage('home')"><span class="nico">🏠</span>ホーム</div>
@@ -2082,9 +2082,29 @@ function deleteMyProduct(pid){
 // IMAGE
 // ══════════════════════════════════════
 let imgData=null;
+function compressImage(file,maxWidth,quality,callback){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      let w=img.width,h=img.height;
+      if(w>maxWidth){h=Math.round(h*maxWidth/w);w=maxWidth;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      callback(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
 function previewImg(inp){
   if(!inp.files||!inp.files[0])return;
-  const r=new FileReader();r.onload=e=>{imgData=e.target.result;const pv=document.getElementById('img-prev'),ph=document.getElementById('img-ph');pv.src=imgData;pv.style.display='block';ph.style.display='none';};r.readAsDataURL(inp.files[0]);
+  compressImage(inp.files[0],800,0.7,data=>{
+    imgData=data;
+    const pv=document.getElementById('img-prev'),ph=document.getElementById('img-ph');
+    pv.src=imgData;pv.style.display='block';ph.style.display='none';
+  });
 }
 
 // ══════════════════════════════════════
@@ -3028,14 +3048,12 @@ function openProfileEdit(){
 }
 function previewProfileImg(inp){
   if(!inp.files||!inp.files[0])return;
-  const r=new FileReader();
-  r.onload=e=>{
-    profileImgData=e.target.result;
+  compressImage(inp.files[0],400,0.8,data=>{
+    profileImgData=data;
     const prevImg=document.getElementById('prof-av-preview-img'),prevTxt=document.getElementById('prof-av-preview-txt');
     prevImg.src=profileImgData;prevImg.style.display='block';prevTxt.style.display='none';
     document.getElementById('prof-img-ph').innerHTML='<div style="font-size:11px;color:var(--accent3)">✅ 画像を選択済み</div>';
-  };
-  r.readAsDataURL(inp.files[0]);
+  });
 }
 function clearProfileImg(){
   profileImgData=null;
