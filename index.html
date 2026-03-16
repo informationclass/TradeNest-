@@ -2775,7 +2775,7 @@ function execPT(){
 }
 function checkAbnormalPT(uid,delta){
   // 1操作で500PT以上の変動を異常とみなす
-  if(Math.abs(delta)<1000)return;
+  if(delta<1000)return;
   const u=users.find(x=>x.id===uid);
   const adminUser=users.find(x=>x.isAdmin);
   if(!adminUser||uid===adminUser.id)return;
