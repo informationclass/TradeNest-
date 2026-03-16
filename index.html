@@ -1762,10 +1762,9 @@ function doLogin(){
   // PIN二段階認証
   if(user.pinEnabled&&user.pin){
     pendingLoginUser=user;
-    pinMode='login'; pinBuffer=''; pinConfirmFirst='';
+    pinMode='login'; pinBuffer='';
     document.getElementById('pin-modal-title').textContent='🔑 PINを入力';
-    document.getElementById('pin-modal-desc').textContent='設定したPINコードを入力してください';
-    updatePinDots();
+    renderPinPad('設定したPINコードを入力してください','');
     document.getElementById('pin-modal').classList.add('on');
     return;
   }
@@ -3492,46 +3491,8 @@ function submitChangePass(){
 // ══════════════════════════════════════
 // SECURITY - PIN二段階認証
 // ══════════════════════════════════════
-function updatePinDots(){
-  for(let i=0;i<4;i++){const d=document.getElementById(`pd${i}`);if(d)d.classList.toggle('filled',i<pinBuffer.length);}
-}
-function pinInput(n){
-  if(pinBuffer.length>=4)return;
-  pinBuffer+=n; updatePinDots();
-  if(pinBuffer.length===4){
-    setTimeout(()=>{
-      if(pinMode==='login'){
-        if(pinBuffer===pendingLoginUser.pin){
-          document.getElementById('pin-modal').classList.remove('on');
-          document.getElementById('pin-modal-err').textContent='';
-          loginOK(pendingLoginUser); pendingLoginUser=null;
-        }else{
-          document.getElementById('pin-modal-err').textContent='PINが違います';
-          pinBuffer=''; updatePinDots();
-        }
-      }else if(pinMode==='set1'){
-        pinConfirmFirst=pinBuffer; pinBuffer=''; updatePinDots();
-        document.getElementById('pin-modal-desc').textContent='もう一度入力して確認してください';
-        document.getElementById('pin-modal-err').textContent='';
-        pinMode='set2';
-      }else if(pinMode==='set2'){
-        if(pinBuffer===pinConfirmFirst){
-          currentUser.pin=pinBuffer; currentUser.pinEnabled=true;
-          document.getElementById('pin-modal').classList.remove('on');
-          document.getElementById('pin-toggle').classList.add('on');
-          document.getElementById('pin-status-txt').textContent='設定済み ✅';
-          saveData(); toast('PINを設定しました🔑','success');
-        }else{
-          document.getElementById('pin-modal-err').textContent='PINが一致しません。最初からやり直してください';
-          pinBuffer=''; pinConfirmFirst=''; updatePinDots(); pinMode='set1';
-          document.getElementById('pin-modal-desc').textContent='4桁のPINコードを設定します';
-        }
-      }
-      pinBuffer=''; updatePinDots();
-    },200);
-  }
-}
-function pinBack(){if(pinBuffer.length>0){pinBuffer=pinBuffer.slice(0,-1);updatePinDots();}}
+// PIN関数は下部に定義
+function pinBack(){if(pinBuffer.length>0){pinBuffer=pinBuffer.slice(0,-1);if(typeof updatePinDots==='function')updatePinDots();}}
 function togglePINSetting(){
   if(!currentUser.pinEnabled){
     openPinSetup();
@@ -3848,23 +3809,39 @@ function pinInput(k){
   pinBuffer+=k;updatePinDots();
   if(pinBuffer.length===4){
     setTimeout(()=>{
-      if(pinMode==='remove'){
-        if(pinBuffer===currentUser.pin){
-          currentUser.pin=null;currentUser.pinEnabled=false;closeModal('pin-modal');
-          toast('PINを解除しました','info');saveData();renderSettings();
-        }else{pinBuffer='';renderPinPad('現在のPINを入力してください','❌ PINが違います');}
-      }else if(pinStep===0){
-        pinFirst=pinBuffer;pinBuffer='';pinStep=1;
-        renderPinPad('もう一度PINを入力してください（確認）','');
-      }else{
-        if(pinBuffer===pinFirst){
-          const aw=document.getElementById('pin-apply-wrap');if(aw)aw.style.display='block';
-          [0,1,2,3].forEach(i=>{const el=document.getElementById(`pd${i}`);if(el){el.classList.add('filled');el.style.background='var(--accent3)';}});
-          const md=document.getElementById('pin-modal-body');
-          const d=md&&md.querySelector('div');if(d)d.textContent='✅ 一致しました！「適用する」を押してください';
+      if(pinMode==='login'){
+        // ログイン時のPIN確認
+        if(pinBuffer===pendingLoginUser.pin){
+          closeModal('pin-modal');
+          loginOK(pendingLoginUser);pendingLoginUser=null;
         }else{
-          pinBuffer='';pinStep=0;pinFirst='';
-          renderPinPad('新しいPINを入力（4桁）','❌ 一致しません。最初からやり直してください');
+          pinBuffer='';
+          renderPinPad('設定したPINコードを入力してください','❌ PINが違います');
+        }
+      }else if(pinMode==='remove'){
+        // PIN解除：現在のPINを確認
+        if(pinBuffer===currentUser.pin){
+          currentUser.pin=null;currentUser.pinEnabled=false;
+          closeModal('pin-modal');toast('PINを解除しました','info');saveData();renderSettings();
+        }else{
+          pinBuffer='';renderPinPad('現在のPINを入力してください','❌ PINが違います');
+        }
+      }else if(pinMode==='set'){
+        // PIN設定：1回目 → 2回目確認
+        if(pinStep===0){
+          pinFirst=pinBuffer;pinBuffer='';pinStep=1;
+          renderPinPad('もう一度PINを入力してください（確認）','');
+        }else{
+          // 2回目入力完了 → 一致確認
+          if(pinBuffer===pinFirst){
+            const aw=document.getElementById('pin-apply-wrap');if(aw)aw.style.display='block';
+            [0,1,2,3].forEach(i=>{const el=document.getElementById(`pd${i}`);if(el){el.classList.add('filled');el.style.background='var(--accent3)';}});
+            const md=document.getElementById('pin-modal-body');
+            const d=md&&md.querySelector('div');if(d)d.textContent='✅ 一致しました！「適用する」を押してください';
+          }else{
+            pinBuffer='';pinStep=0;pinFirst='';
+            renderPinPad('新しいPINを入力（4桁）','❌ 一致しません。最初からやり直してください');
+          }
         }
       }
     },150);
