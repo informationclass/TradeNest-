@@ -120,7 +120,10 @@ const u=localStorage.getItem('tn_users');users=u?JSON.parse(u):[ADMIN_DEFAULT];i
 console.warn('loadLocal error',e);users=[ADMIN_DEFAULT];products=[];posts=[];reports=[];notifs={};dms={};dmUnread={};coupons=[];txHistory={};negotiations=[];events=[];nextId=1;nextPostId=1;}
 }
 function applyData(d){
-if(!d)return;users=d.users||[ADMIN_DEFAULT];if(!users.find(x=>x.id==='admin'))users.unshift(ADMIN_DEFAULT);products=d.products||[];posts=d.posts||[];reports=d.reports||[];notifs=d.notifs||{};dms=d.dms||{};dmUnread=d.dmUnread||{};coupons=d.coupons||[];txHistory=d.txHistory||{};negotiations=d.negotiations||[];events=d.events||[];bannedList=d.bannedList||[];forgotRequests=d.forgotRequests||[];contacts=d.contacts||[];nextId=d.nextId||1;nextPostId=d.nextPostId||1;}
+if(!d)return;users=d.users||[ADMIN_DEFAULT];if(!users.find(x=>x.id==='admin'))users.unshift(ADMIN_DEFAULT);products=d.products||[];posts=d.posts||[];reports=d.reports||[];notifs=d.notifs||{};dms=d.dms||{};dmUnread=d.dmUnread||{};coupons=d.coupons||[];txHistory=d.txHistory||{};negotiations=d.negotiations||[];events=d.events||[];bannedList=d.bannedList||[];forgotRequests=d.forgotRequests||[];contacts=d.contacts||[];nextId=d.nextId||1;nextPostId=d.nextPostId||1;
+// ログイン中ユーザーのデータをSupabaseの最新データで更新
+if(currentUser){const me=users.find(u=>u.id===currentUser.id);if(me){currentUser=me;if(typeof updatePT==='function')updatePT();}}
+}
 function setupRealtimeSync(){
 const sb=getSB();if(!sb)return;try{
 const channel=sb.channel('tn_sync');channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'tradenest_data'},payload=>{
@@ -287,18 +290,24 @@ function applyBuyCoupon(){
 const code=document.getElementById('buy-coupon-inp').value.trim().toUpperCase();const msg=document.getElementById('buy-coupon-msg');if(!code){msg.textContent='コードを入力してください';msg.style.color='var(--danger)';return;}
 const c=coupons.find(x=>x.code===code&&!x.used);if(!c){msg.textContent='❌ 無効なコードです';msg.style.color='var(--danger)';return;}
 pendingCouponCode=code;msg.textContent=`✅ クーポン適用！-${c.discount}PT割引`;msg.style.color='var(--accent3)';document.getElementById('conf-yes').style.display='block';document.getElementById('conf-yes').textContent=`購入する (${Math.max(1,(document.getElementById('conf-yes').dataset.base||0)*1-c.discount)}PT)`;document.getElementById('conf-yes').onclick=execBuy;document.getElementById('conf-no').textContent='キャンセル';document.getElementById('conf-no').onclick=()=>closeModal('conf-modal');}
-function execBuy(){
+async function execBuy(){
 if(!pendingBuyId)return;const p=products.find(x=>x.id===pendingBuyId);if(!p||p.sold){toast('購入できませんでした','error');closeModal('conf-modal');return;}
 const basePrice=p.salePrice||p.price;const sellerPrice=p.price;let buyerCost=basePrice;if(pendingCouponCode){
 const c=coupons.find(x=>x.code===pendingCouponCode&&!x.used);if(c){buyerCost=Math.max(1,basePrice-c.discount);c.used=true;toast(`クーポン適用！-${c.discount}PT`,'success');}
 pendingCouponCode='';}
 if(currentUser.pt<buyerCost&&!currentUser.isAdmin){toast(`PT残高が不足しています（必要:${buyerCost}PT）`,'error');closeModal('conf-modal');return;}
-if(!currentUser.isAdmin)currentUser.pt-=buyerCost;const sel=users.find(u=>u.id===p.sellerId);if(sel&&!currentUser.isAdmin){sel.pt+=sellerPrice;if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
+if(!currentUser.isAdmin){currentUser.pt=Math.max(0,currentUser.pt-buyerCost);updatePT();}const sel=users.find(u=>u.id===p.sellerId);if(sel&&!currentUser.isAdmin){sel.pt+=sellerPrice;if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
 else if(sel){if(!sel.sold)sel.sold=[];sel.sold.push(p.id);}
-p.sold=true;p.buyerId=currentUser.id;if(p.stock!==undefined)p.stock=Math.max(0,p.stock-1);if(p.stock>0)p.sold=false;if(!currentUser.purchases)currentUser.purchases=[];currentUser.purchases.push(p.id);const timeStr=new Date().toLocaleString('ja');addTx(currentUser.id,{type:'buy',name:p.name,pt:currentUser.isAdmin?0:-buyerCost,imgData:p.imgData,cat:p.category,time:timeStr});if(sel&&!currentUser.isAdmin)addTx(sel.id,{type:'sell',name:p.name,pt:+sellerPrice,imgData:p.imgData,cat:p.category,time:timeStr});if(!currentUser.isAdmin)addNotif(p.sellerId,`💰 「${p.name}」が購入されました！（あなたの受取:${sellerPrice}PT）`);closeModal('conf-modal');pendingBuyId=null;if(p.afterMsg){
+p.sold=true;p.buyerId=currentUser.id;if(p.stock!==undefined)p.stock=Math.max(0,p.stock-1);if(p.stock>0)p.sold=false;if(!currentUser.purchases)currentUser.purchases=[];currentUser.purchases.push(p.id);const timeStr=new Date().toLocaleString('ja');addTx(currentUser.id,{type:'buy',name:p.name,pt:currentUser.isAdmin?0:-buyerCost,imgData:p.imgData,cat:p.category,time:timeStr});if(sel&&!currentUser.isAdmin)addTx(sel.id,{type:'sell',name:p.name,pt:+sellerPrice,imgData:p.imgData,cat:p.category,time:timeStr});if(!currentUser.isAdmin)addNotif(p.sellerId,`💰 「${p.name}」が購入されました！（あなたの受取:${sellerPrice}PT）`);closeModal('conf-modal');pendingBuyId=null;
+// Supabaseに確実に保存してから完了
+saveLocal();
+await saveRemote();
+toast('購入完了！レビューを書いてみましょう⭐','success');checkMission('buy');updatePT();checkBadges(currentUser);if(sel)checkBadges(sel);
+renderProds('hgrid',products);renderProds('mgrid',products);renderMyPage();renderRanking();renderHistory();
+if(p.afterMsg){
 setTimeout(()=>{
 document.getElementById('conf-ico').innerHTML='📩';document.getElementById('conf-msg').innerHTML=`<b style="font-size:15px">購入ありがとうございます！</b><br><span style="font-size:12px;color:var(--text2)">「${esc(p.name)}」の出品者からメッセージがあります</span>`;document.getElementById('conf-sub').innerHTML=`<div style="background:var(--surface2);border:1.5px solid var(--accent);border-radius:10px;padding:14px;text-align:left;font-size:13px;line-height:1.7;word-break:break-all;margin-bottom:8px">${esc(p.afterMsg).replace(/https?:\/\/[^\s]+/g,url=>`<a href="${url}" target="_blank" style="color:var(--accent);text-decoration:underline">${url}</a>`)}</div>`;document.getElementById('conf-yes').style.display='none';document.getElementById('conf-no').textContent='閉じる';document.getElementById('conf-no').onclick=()=>closeModal('conf-modal');document.getElementById('conf-modal').classList.add('on');},300);}
-toast('購入完了！レビューを書いてみましょう⭐','success');checkMission('buy');updatePT();checkBadges(currentUser);if(sel)checkBadges(sel);saveData();renderProds('hgrid',products);renderProds('mgrid',products);renderMyPage();renderRanking();renderHistory();}
+}
 function addTx(uid,tx){if(!txHistory[uid])txHistory[uid]=[];txHistory[uid].unshift(tx);}
 function deleteMyProduct(pid){
 const p=products.find(x=>x.id===pid);if(!p)return;if(p.sellerId!==currentUser.id){toast('自分の商品のみ削除できます','error');return;}
