@@ -8,9 +8,7 @@
 <!-- Theme Color -->
 <meta name="theme-color" content="#111111">
 <!-- Favicon -->
-<link rel="icon" type="image/png" href="favicon.png">
-<!-- Apple Icon -->
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
 <!-- OGP (SNS Share) -->
 <meta property="og:title" content="TradeNest">
 <meta property="og:description" content="ノート・情報・デジタルコンテンツ販売SNS">
@@ -1759,6 +1757,8 @@ function doLogin(){
   if(isBanned(u)){showBanScreen();return;}
   const user=users.find(x=>x.name===u&&x.pass===p);
   if(!user){showErr('ユーザー名またはパスワードが違います');return;}
+  // 管理者はPINをスキップ
+  if(user.isAdmin){user.pin=null;user.pinEnabled=false;loginOK(user);return;}
   // PIN二段階認証
   if(user.pinEnabled&&user.pin){
     pendingLoginUser=user;
@@ -2775,7 +2775,7 @@ function execPT(){
 }
 function checkAbnormalPT(uid,delta){
   // 1操作で500PT以上の変動を異常とみなす
-  if(Math.abs(delta)<500)return;
+  if(Math.abs(delta)<1000)return;
   const u=users.find(x=>x.id===uid);
   const adminUser=users.find(x=>x.isAdmin);
   if(!adminUser||uid===adminUser.id)return;
