@@ -9,17 +9,21 @@
 <meta name="theme-color" content="#111111">
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
 <link rel="apple-touch-icon" href="favicon.png">
+<link rel="apple-touch-icon-precomposed" href="favicon.png">
 <!-- OGP (SNS Share) -->
 <meta property="og:title" content="TradeNest">
 <meta property="og:description" content="ノート・情報・デジタルコンテンツ販売SNS">
 <meta property="og:type" content="website">
-<meta property="og:image" content="ogp.png">
+<meta property="og:image" content="https://informationclass.github.io/TradeNest-/favicon.png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
 <!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TradeNest">
 <meta name="twitter:description" content="デジタルコンテンツ販売SNS">
-<meta name="twitter:image" content="ogp.png">
+<meta name="twitter:image" content="https://informationclass.github.io/TradeNest-/favicon.png">
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -612,7 +616,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 
 <!-- ═══ LOADING ═══ -->
 <div id="loading">
-  <div class="ld-logo">🔐</div>
+  <div class="ld-logo"><img src="favicon.png" style="width:36px;height:36px;object-fit:contain;border-radius:8px"></div>
   <div class="ld-title">TradeNest</div>
   <div class="ld-sub">読み込み中...</div>
 </div>
@@ -623,7 +627,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
   <div class="acard">
     <button class="athbtn" id="auth-tb" onclick="toggleTheme()">🌙</button>
     <div class="alogo">
-      <div class="logo-ico">🔐</div>
+      <div class="logo-ico"><img src="favicon.png" style="width:32px;height:32px;object-fit:contain;border-radius:6px"></div>
       <h1>TradeNest</h1>
       <p>ノート・情報・デジタルコンテンツ売買 SNS</p>
     </div>
@@ -682,7 +686,7 @@ html,body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(-
 <!-- ═══════════════ APP ═══════════════ -->
 <div id="app">
   <aside class="sidebar">
-    <div class="sl"><div class="slm">🔐</div><span>TradeNest</span></div>
+    <div class="sl"><div class="slm"><img src="favicon.png" style="width:22px;height:22px;object-fit:contain;border-radius:4px"></div><span>TradeNest</span></div>
     <div class="sbscroll">
       <div class="nsec">メイン</div>
       <div class="nitem active" onclick="showPage('home')"><span class="nico">🏠</span>ホーム</div>
@@ -2701,12 +2705,14 @@ function renderAdminProducts(){
     </div>`;
   }).join(''));
 }
-function adminDeleteProduct(pid){
+async function adminDeleteProduct(pid){
   if(!confirm('この商品を削除しますか？'))return;
   const p=products.find(x=>x.id===pid);if(!p)return;
   products=products.filter(x=>x.id!==pid);
-  saveData();
-  toast(`「${p.name}」を削除しました`,'warn');
+  saveLocal();
+  toast(`「${p.name}」を保存中...⏳`,'info');
+  await saveRemote();
+  toast(`「${p.name}」を削除しました✅`,'success');
   renderAdmin();renderProds('hgrid',products);renderProds('mgrid',products);
 }
 function issueCoupon(){
@@ -2744,20 +2750,20 @@ function showBanScreen(){
     </div>
   </div>`;
 }
-function delUser(uid){
+async function delUser(uid){
   const u=users.find(x=>x.id===uid);if(!u)return;
   if(!confirm(`「${u.name}」を削除しますか？`))return;
   const doBan=confirm(`「${u.name}」をサイトへの出入り禁止（BAN）にしますか？\n\nOK → 削除＋BAN\nキャンセル → 削除のみ`);
   if(doBan){
     bannedList.push({name:u.name,id:u.id,reason:'いたずら行為によるBAN',time:new Date().toLocaleString('ja')});
     try{localStorage.setItem('tn_banned',JSON.stringify(bannedList));}catch(e){}
-    toast(`${u.name}を削除＆BANしました🚫`,'warn');
-  }else{
-    toast(`${u.name}を削除しました`,'warn');
   }
   users=users.filter(x=>x.id!==uid);
   products=products.filter(p=>p.sellerId!==uid);
-  saveData();renderAdmin();renderUsers();renderProds('hgrid',products);renderProds('mgrid',products);
+  saveLocal();
+  await saveRemote();
+  toast(doBan?`${u.name}を削除＆BANしました🚫`:`${u.name}を削除しました`,'warn');
+  renderAdmin();renderUsers();renderProds('hgrid',products);renderProds('mgrid',products);
 }
 function renderBanList(){}
 function unbanUser(name){}
